@@ -104,8 +104,8 @@ public class AutotextInputMethod extends InputMethodService {
 	// ///////////////////////////////////////////////////////////////////////////
 	@Override
 	public void onStartInput(EditorInfo info, boolean restarting) {
-//		Log.d("Here", "onStartInput()" + " | restart = " + String.valueOf(restarting) + " | initialStart = " + info.initialSelStart
-//				+ " | initialEnd = " + info.initialSelEnd);
+		Log.d("Here", "onStartInput()" + " | restart = " + String.valueOf(restarting) + " | initialStart = " + info.initialSelStart
+				+ " | initialEnd = " + info.initialSelEnd);
 		super.onStartInput(info, restarting);
 		// 初始化光标的位置，也可据此知道当前编辑器光标前已经有多少个字符了。
 		mEditInfo = info;
@@ -115,9 +115,11 @@ public class AutotextInputMethod extends InputMethodService {
 			isInputStarted = true;
 		} else {
 			isInputStarted = false;
+			mStart = 0;
+			mEnd = 0;
 			return;
 		}
-		
+
 		mConnection = this.getCurrentInputConnection();
 		autotext = new Autotext();
 		curOper = new CursorOperator(mConnection);
@@ -149,11 +151,10 @@ public class AutotextInputMethod extends InputMethodService {
 				selectedMethodPostion = i;
 		}
 		defaultMethodId = methodItemList.get(selectedMethodPostion).getId();
-		Toast.makeText(this, methodItemList.get(selectedMethodPostion).getName(), TOASTDURATION).show();
+		//Toast.makeText(this, methodItemList.get(selectedMethodPostion).getName(), TOASTDURATION).show();
 		maxInputLength = dboper.getMaxInputLength(defaultMethodId);
 		return;
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -164,9 +165,8 @@ public class AutotextInputMethod extends InputMethodService {
 	@Override
 	public boolean onEvaluateInputViewShown() {
 		// TODO Auto-generated method stub
-		return false;//不使用软键盘
+		return false;// 不使用软键盘
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -176,14 +176,13 @@ public class AutotextInputMethod extends InputMethodService {
 	@Override
 	public void onFinishInput() {
 		// TODO Auto-generated method stub
-		//Log.d("Here", "onFinishInput");
+		// Log.d("Here", "onFinishInput");
 		super.onFinishInput();
 		this.hideStatusIcon();
 		this.currentCursorEnd = -1;
 		this.currentCursorStart = -1;
 		this.isInputStarted = false;
 		this.isSelectModel = false;
-
 	}
 
 	// /////////////////////////////////////////////////////////////////////////
@@ -192,6 +191,7 @@ public class AutotextInputMethod extends InputMethodService {
 		if (!this.isInputStarted) {
 			return super.onKeyDown(selectedMethodPostion, event);
 		}
+
 		this.mConnection.finishComposingText();
 		this.mConnection.beginBatchEdit();
 		mConnection.endBatchEdit();// 必须加上这个语句，要不然EditText可能会进入到BatchEdit模式，不会及时调用onSelectionupdate函数来更新光标信息，从而出错
@@ -245,7 +245,7 @@ public class AutotextInputMethod extends InputMethodService {
 			char c;
 			for (offsetBefore = 1; offsetBefore <= candidateInput.length(); offsetBefore++) {// 从当前位置开始往前找
 				c = candidateInput.charAt(candidateInput.length() - offsetBefore);
-				if (c == ConstantList.SUBSTITUTION_SEPERRATOR || c == '\n') {// 如果找到了替换分隔符
+				if (c == ConstantList.SUBSTITUTION_SEPERRATOR || c == '\n') {// 如果找到了替换分隔符或者行首
 					break;
 				}
 			}
@@ -842,6 +842,13 @@ public class AutotextInputMethod extends InputMethodService {
 			if (!temp.equals("NONE")) {
 				mConnection.commitText(temp, 1);
 			}
+			
+//			String temp;
+//			for(int i = 0; i < sb.getEmojiNumbers(); i++){
+//				mConnection.commitText("0x" + String.format("%x", SymBoard.EMOJI_LIST[i]), 1);
+//				temp = new String(Character.toChars(SymBoard.EMOJI_LIST[i]));
+//				mConnection.commitText(temp, 1);
+//			}
 			return true;
 		} else if (keyCode == ConstantList.SUBSTITUTION_ENTER || keyCode == ConstantList.SUBSTITUTION_NUMPAD_ENTER) {// 如果输入回车健
 			isSelectModel = false;
@@ -905,12 +912,8 @@ public class AutotextInputMethod extends InputMethodService {
 	// ///////////////////////////////////////////////////////////////////////
 	@Override
 	public void onUpdateSelection(int oldSelStart, int oldSelEnd, int newSelStart, int newSelEnd, int candidatesStart, int candidatesEnd) {
-		// //Log.d("Here", "newSelS=" + String.valueOf(newSelStart) +
-		// "|newSelE="
-		// + String.valueOf(newSelEnd));
-		// //Log.d("Here", "oldSelS=" + String.valueOf(oldSelStart) +
-		// "|oldSelE="
-		// + String.valueOf(oldSelEnd));
+		//Log.d("Here", "newSelS = " + String.valueOf(newSelStart) + " | newSelE = " + String.valueOf(newSelEnd));
+		//Log.d("Here", "oldSelS = " + String.valueOf(oldSelStart) + " | oldSelE = " + String.valueOf(oldSelEnd));
 		currentCursorStart = newSelStart;
 		currentCursorEnd = newSelEnd;
 
